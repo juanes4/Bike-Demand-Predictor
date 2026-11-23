@@ -6,15 +6,37 @@
 <title>Bicicletas para mañana</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap">
+<meta name="theme-color" content="#E4E7EC" id="theme-color">
 <style>
+/* Los colores se registran para que el cambio de tema (estación + temperatura) se anime suavemente */
+@property --surface { syntax: '<color>'; inherits: true; initial-value: #E4E7EC; }
+@property --light   { syntax: '<color>'; inherits: true; initial-value: #FFFFFF; }
+@property --shade   { syntax: '<color>'; inherits: true; initial-value: #B9C0CB; }
+@property --track   { syntax: '<color>'; inherits: true; initial-value: #A7AFBB; }
+@property --ink     { syntax: '<color>'; inherits: true; initial-value: #2C333D; }
+@property --muted   { syntax: '<color>'; inherits: true; initial-value: #5E6673; }
+@property --accent  { syntax: '<color>'; inherits: true; initial-value: #3E6FB0; }
+@property --bar-a   { syntax: '<color>'; inherits: true; initial-value: #8296B3; }
+@property --bar-b   { syntax: '<color>'; inherits: true; initial-value: #6F84A3; }
+@property --peak-a  { syntax: '<color>'; inherits: true; initial-value: #4F78B4; }
+@property --peak-b  { syntax: '<color>'; inherits: true; initial-value: #3E64A0; }
 :root {
-  /* Neumorfismo de una sola superficie: todo sale del mismo gris; el relieve lo dan dos sombras (luz arriba-izquierda) */
+  /* Neumorfismo de una sola superficie: todo sale del mismo tono; el relieve lo dan dos sombras (luz arriba-izquierda).
+     El script reemplaza estos valores: el matiz viene de la estación y se vuelve cálido o frío según la temperatura.
+     La luminosidad de cada token es fija (OKLCH), así el contraste de textos y gráficas se mantiene con cualquier color. */
   --surface: #E4E7EC;
   --light: #FFFFFF;
   --shade: #B9C0CB;
+  --track: #A7AFBB;
   --ink: #2C333D;
-  --muted: #6B7380;
+  --muted: #5E6673;
   --accent: #3E6FB0;
+  --bar-a: #8296B3;
+  --bar-b: #6F84A3;
+  --peak-a: #4F78B4;
+  --peak-b: #3E64A0;
+  transition: --surface .7s ease, --light .7s ease, --shade .7s ease, --track .7s ease, --ink .7s ease, --muted .7s ease,
+              --accent .7s ease, --bar-a .7s ease, --bar-b .7s ease, --peak-a .7s ease, --peak-b .7s ease;
   --display: 'Outfit', 'Trebuchet MS', sans-serif;
   --body: 'Manrope', 'Segoe UI', Arial, sans-serif;
   --raised: 8px 8px 18px var(--shade), -8px -8px 18px var(--light);
@@ -85,8 +107,15 @@ input[type=date]:focus-visible { outline: 3px solid var(--accent); outline-offse
 
 .bars { margin-top: 22px; border-radius: 22px; box-shadow: var(--inset); padding: 18px 14px 10px; }
 .bars-plot { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 4px; align-items: end; height: 170px; }
-.bar { border-radius: 6px 6px 3px 3px; background: linear-gradient(180deg, #9FB4CF, #7C93B3); min-height: 3px; }
-.bar.peak { background: linear-gradient(180deg, #5F8BC8, var(--accent)); }
+.bar { border-radius: 6px 6px 3px 3px; background: linear-gradient(180deg, var(--bar-a), var(--bar-b)); min-height: 3px; }
+.bar.peak { background: linear-gradient(180deg, var(--peak-a), var(--peak-b)); }
+
+/* Indicador semicircular: colores desde los tokens del tema */
+.g-tick { stroke: var(--track); stroke-linecap: round; }
+.g-tick.on { stroke: var(--ink); }
+.g-lbl { fill: var(--muted); font-family: var(--body); font-size: 12px; }
+.g-needle { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
+.g-knob { fill: var(--surface); stroke: var(--accent); stroke-width: 3; }
 .bars-axis { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 4px; margin-top: 8px; font-size: 11px; color: var(--muted); text-align: center; font-variant-numeric: tabular-nums; }
 .bars-cap { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-top: 6px; }
 
@@ -139,7 +168,7 @@ input[type=date]:focus-visible { outline: 3px solid var(--accent); outline-offse
   .item .ico { width: 34px; height: 34px; }
   .item .txt small { display: none; }
 }
-@media (prefers-reduced-motion: reduce) { .switch::after { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .switch::after, :root { transition: none; } }
 </style>
 </head>
 <body>
@@ -156,7 +185,7 @@ input[type=date]:focus-visible { outline: 3px solid var(--accent); outline-offse
           <div class="ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h5l3 7M10 9l-1.5-3H7M15 9l1-3h2"/></svg></div>
           <div><p class="card-title" id="t-disp">Bicicletas a disponer</p><p class="card-sub">Pico predicho del día + margen de seguridad</p></div>
         </div>
-        <div class="chips"><span class="chip" id="chip-dia">Lunes</span><span class="chip" id="chip-est">Otoño</span><span class="chip" id="chip-fest">Día normal</span></div>
+        <div class="chips"><span class="chip" id="chip-dia">Lunes</span><span class="chip" id="chip-est">Otoño</span><span class="chip" id="chip-fest">Día normal</span><span class="chip" id="chip-temp">Templado</span></div>
         <div class="gauge">
           <svg viewBox="0 0 400 230" id="gauge-svg" role="img" aria-label="Indicador de bicicletas a disponer"></svg>
           <div class="gauge-read"><div class="big" id="disp">0</div><div class="big-label">bicicletas en la ciudad</div></div>
@@ -232,13 +261,76 @@ function drawGauge(value) {
   for (let i = 0; i <= n; i++) {
     const t = i / n, ang = Math.PI * (1 - t), on = t <= value / GMAX, long = i % 10 === 0;
     const ri = long ? r1 - 8 : r1;
-    s += `<line x1="${cx + ri * Math.cos(ang)}" y1="${cy - ri * Math.sin(ang)}" x2="${cx + r2 * Math.cos(ang)}" y2="${cy - r2 * Math.sin(ang)}" stroke="${on ? '#2C333D' : '#B9C0CB'}" stroke-width="${long ? 3.5 : 2.5}" stroke-linecap="round"/>`;
-    if (long) s += `<text x="${cx + (r1 - 26) * Math.cos(ang)}" y="${cy - (r1 - 26) * Math.sin(ang) + 4}" font-size="12" font-family="Manrope, sans-serif" fill="#6B7380" text-anchor="middle">${t === 0 ? 0 : (GMAX * t / 1000) + "k"}</text>`;
+    s += `<line class="g-tick${on ? ' on' : ''}" x1="${cx + ri * Math.cos(ang)}" y1="${cy - ri * Math.sin(ang)}" x2="${cx + r2 * Math.cos(ang)}" y2="${cy - r2 * Math.sin(ang)}" stroke-width="${long ? 3.5 : 2.5}"/>`;
+    if (long) s += `<text class="g-lbl" x="${cx + (r1 - 26) * Math.cos(ang)}" y="${cy - (r1 - 26) * Math.sin(ang) + 4}" text-anchor="middle">${t === 0 ? 0 : (GMAX * t / 1000) + "k"}</text>`;
   }
   const t = Math.min(value / GMAX, 1), ang = Math.PI * (1 - t);
-  s += `<line x1="${cx + (r1 - 4) * Math.cos(ang)}" y1="${cy - (r1 - 4) * Math.sin(ang)}" x2="${cx + (r2 + 12) * Math.cos(ang)}" y2="${cy - (r2 + 12) * Math.sin(ang)}" stroke="#3E6FB0" stroke-width="4" stroke-linecap="round"/>`;
-  s += `<circle cx="${cx + (r2 + 16) * Math.cos(ang)}" cy="${cy - (r2 + 16) * Math.sin(ang)}" r="7" fill="#E4E7EC" stroke="#3E6FB0" stroke-width="3"/>`;
+  s += `<line class="g-needle" x1="${cx + (r1 - 4) * Math.cos(ang)}" y1="${cy - (r1 - 4) * Math.sin(ang)}" x2="${cx + (r2 + 12) * Math.cos(ang)}" y2="${cy - (r2 + 12) * Math.sin(ang)}"/>`;
+  s += `<circle class="g-knob" cx="${cx + (r2 + 16) * Math.cos(ang)}" cy="${cy - (r2 + 16) * Math.sin(ang)}" r="7"/>`;
   svg.innerHTML = s;
+}
+
+// ---------- Tema de color: estación (matiz) + temperatura (cálido / frío) ----------
+// Mismo mapeo mes → estación que usa el servidor, para cambiar el color sin esperar la predicción.
+const ESTACION_MES = ['Winter', 'Winter', 'Spring', 'Spring', 'Spring', 'Summer', 'Summer', 'Summer', 'Autumn', 'Autumn', 'Autumn', 'Winter'];
+// Matiz OKLCH de cada estación: verde brote, dorado de sol, terracota, azul invierno
+const MATIZ_ESTACION = { Spring: 145, Summer: 85, Autumn: 35, Winter: 255 };
+const MATIZ_CALIDO = 55, MATIZ_FRIO = 235;
+
+// OKLCH → sRGB lineal (fórmulas de Björn Ottosson)
+function oklchLineal(L, C, h) {
+  const a = C * Math.cos(h * Math.PI / 180), b = C * Math.sin(h * Math.PI / 180);
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.2914855480 * b) ** 3;
+  return [4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+          -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+          -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s];
+}
+// Convierte a hex; si el color se sale del gamut sRGB, baja el croma (nunca la luminosidad, para no perder contraste)
+function oklch(L, C, h) {
+  const dentro = c => c.every(v => v >= -1e-4 && v <= 1 + 1e-4);
+  let rgb = oklchLineal(L, C, h);
+  if (!dentro(rgb)) {
+    let lo = 0, hi = C;
+    for (let i = 0; i < 20; i++) { const mid = (lo + hi) / 2; dentro(oklchLineal(L, mid, h)) ? lo = mid : hi = mid; }
+    rgb = oklchLineal(L, lo, h);
+  }
+  return '#' + rgb.map(v => {
+    v = Math.min(1, Math.max(0, v));
+    v = v <= 0.0031308 ? 12.92 * v : 1.055 * v ** (1 / 2.4) - 0.055;
+    return Math.round(v * 255).toString(16).padStart(2, '0');
+  }).join('');
+}
+// Gira el matiz h hacia el objetivo por el camino más corto. Con intensidad 1 avanza la mitad del camino
+// (máximo 40°), así cada estación conserva su color propio incluso en los días más fríos o calurosos.
+function girarHacia(h, objetivo, intensidad) {
+  const d = ((objetivo - h + 540) % 360) - 180;
+  return (h + Math.sign(d) * Math.min(Math.abs(d) / 2, 40) * intensidad + 360) % 360;
+}
+const ETIQUETA_TEMP = w => w < -0.5 ? 'Frío' : w < -0.2 ? 'Fresco' : w <= 0.25 ? 'Templado' : w <= 0.6 ? 'Cálido' : 'Caluroso';
+
+function aplicarTema() {
+  const f = $('fecha').value;
+  const est = f ? ESTACION_MES[+f.slice(5, 7) - 1] : 'Autumn';
+  const tmedia = (+$('tmin').value + +$('tmax').value) / 2;
+  // w = -1 (≈ -6 °C, muy frío) … 0 (12 °C, templado) … +1 (≈ 30 °C, muy caluroso)
+  const w = Math.max(-1, Math.min(1, (tmedia - 12) / 18));
+  const h = girarHacia(MATIZ_ESTACION[est], w >= 0 ? MATIZ_CALIDO : MATIZ_FRIO, Math.abs(w));
+  const k = 1 + 0.45 * w; // el calor satura el color; el frío lo vuelve más pálido y helado
+  // Luminosidades fijas, verificadas para todas las combinaciones: texto ≥ 5,3:1 y barras ≥ 3:1 sobre la superficie
+  const tokens = {
+    '--surface': oklch(0.93, 0.032 * k, h), '--light': oklch(0.995, 0.008 * k, h), '--shade': oklch(0.80, 0.045 * k, h),
+    '--track': oklch(0.72, 0.04 * k, h), '--ink': oklch(0.27, 0.03, h), '--muted': oklch(0.47, 0.035, h),
+    '--accent': oklch(0.47, 0.13 * k, h),
+    '--bar-a': oklch(0.60, 0.09 * k, h), '--bar-b': oklch(0.54, 0.095 * k, h),
+    '--peak-a': oklch(0.47, 0.13 * k, h), '--peak-b': oklch(0.41, 0.125 * k, h),
+  };
+  const root = document.documentElement.style;
+  for (const [nombre, valor] of Object.entries(tokens)) root.setProperty(nombre, valor);
+  $('theme-color').setAttribute('content', tokens['--surface']);
+  $('chip-est').textContent = SEASON_ES[est];
+  $('chip-temp').textContent = `${ETIQUETA_TEMP(w)} · ${tmedia.toFixed(1).replace('.', ',')} °C`;
 }
 
 function pintar(r) {
@@ -294,7 +386,9 @@ drawGauge(0);
 // La mínima nunca puede superar a la máxima: al mover un deslizador, el otro se ajusta.
 $('tmin').addEventListener('input', () => { if (+$('tmin').value > +$('tmax').value) $('tmax').value = $('tmin').value; });
 $('tmax').addEventListener('input', () => { if (+$('tmax').value < +$('tmin').value) $('tmin').value = $('tmax').value; });
+['fecha', 'tmin', 'tmax'].forEach(id => $(id).addEventListener('input', aplicarTema));
 ['fecha', 'tmin', 'tmax', 'hum'].forEach(id => $(id).addEventListener('input', pronto));
+aplicarTema();
 document.querySelectorAll('.seg').forEach(g => g.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
