@@ -291,6 +291,9 @@ async function cargarInfo() {
 (() => { const t = new Date(); t.setDate(t.getDate() + 1); $('fecha').value = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; })();
 $('axis').innerHTML = Array.from({ length: 24 }, (_, h) => `<span>${h}</span>`).join('');
 drawGauge(0);
+// La mínima nunca puede superar a la máxima: al mover un deslizador, el otro se ajusta.
+$('tmin').addEventListener('input', () => { if (+$('tmin').value > +$('tmax').value) $('tmax').value = $('tmin').value; });
+$('tmax').addEventListener('input', () => { if (+$('tmax').value < +$('tmin').value) $('tmin').value = $('tmax').value; });
 ['fecha', 'tmin', 'tmax', 'hum'].forEach(id => $(id).addEventListener('input', pronto));
 document.querySelectorAll('.seg').forEach(g => g.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;

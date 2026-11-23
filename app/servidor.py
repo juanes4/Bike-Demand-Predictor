@@ -74,7 +74,7 @@ def temperatura_hora(hora, tmin, tmax):
 def predecir_dia(fecha, tmin, tmax, humedad, lluvia, nieve, festivo):
     """Arma las 24 horas del día con las variables crudas, predice con los pipelines y aplica la regla prescriptiva."""
     if tmin > tmax:
-        tmin, tmax = tmax, tmin
+        raise ValueError(f"la temperatura mínima ({tmin}) no puede ser mayor que la máxima ({tmax})")
     estacion = ESTACIONES[fecha.month]
     dia = DIAS[fecha.weekday()]
     temps = [temperatura_hora(h, tmin, tmax) for h in range(24)]
