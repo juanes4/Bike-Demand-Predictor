@@ -1,0 +1,7 @@
+# Entornos y caché de Python (los .joblib de artifacts/ SÍ se versionan)
+__pycache__/
+*.pyc
+.venv/
+venv/
+venv_ml/
+.env
