@@ -1,7 +1,21 @@
-# Entornos y caché de Python (los .joblib de artifacts/ SÍ se versionan)
+# Lista blanca: se ignora todo excepto lo necesario para el despliegue.
+/*
+
+!/.gitignore
+!/.python-version
+!/README.md
+!/requirements.txt
+
+!/app/
+/app/*
+!/app/servidor.py
+!/app/index.html
+
+!/artifacts/
+/artifacts/*
+!/artifacts/*.joblib
+!/artifacts/seoul_metadata.json
+
+# Caché de Python dentro de las carpetas permitidas
 __pycache__/
 *.pyc
-.venv/
-venv/
-venv_ml/
-.env
